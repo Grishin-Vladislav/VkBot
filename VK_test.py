@@ -1,14 +1,22 @@
+import os
+
+from dotenv import load_dotenv, find_dotenv
 import vk_api
-from secrets_1 import token
 from vk_api import VkUpload
-from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.longpoll import VkLongPoll, VkEventType  
 from vk_api.utils import get_random_id
+
+
+
+load_dotenv(find_dotenv())
+TOKEN = os.getenv("TOKEN")
+print(TOKEN)
 
 def write_message (sender, message):
     authorize.method('messages.send',{'user_id':sender, 'message': message, 'random_id':get_random_id(), 'attachment':','.join(attachments)})
 
 image = "test_image.png"
-authorize = vk_api.VkApi(token = token)
+authorize = vk_api.VkApi(token = TOKEN)
 longpoll = VkLongPoll(authorize)
 upload = VkUpload (authorize)
 
