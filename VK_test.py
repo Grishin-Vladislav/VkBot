@@ -1,11 +1,18 @@
 import os
 
+
+
+
+
 from dotenv import load_dotenv, find_dotenv
 import vk_api
 from vk_api import VkUpload
 from vk_api.longpoll import VkLongPoll, VkEventType  
 from vk_api.utils import get_random_id
+<<<<<<< HEAD
+=======
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+>>>>>>> 054a007224bf7560f1ce9d47655982964f7364bb
 
 load_dotenv(find_dotenv())
 TOKEN = os.getenv("TOKEN")
