@@ -9,8 +9,8 @@ from models import create_tables
 DSN = os.getenv("DSN")         
 engine = sqlalchemy.create_engine(DSN)
 # MetaData.drop_all()
-MetaData.drop_all(engine)
-# create_tables(engine)
+# MetaData.drop_all(engine)
+create_tables(engine)
 
 
 # Session = sessionmaker(bind = engine)
