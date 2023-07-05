@@ -34,7 +34,7 @@ class Seen(Base):
     # id: Mapped[int] = mapped_column(primary_key=True)
     
     user_id: Mapped[int] = mapped_column(ForeignKey('User.user_id'))
-    target_id: Mapped[int] = mapped_column(ForeignKey('Target.target_id'))
+    target_id: Mapped[int] = mapped_column(ForeignKey('Target.target_id'), primary_key=True)
 
     user: Mapped['User'] = relationship(back_populates='seen')
     target: Mapped['Target'] = relationship(back_populates='seen')
@@ -46,10 +46,10 @@ class Favorites(Base):
     # id = sq.Column(sq.Integer, primary_key=True)
     
     user_id: Mapped[int] = mapped_column(ForeignKey('User.user_id'))
-    target_id: Mapped[int] = mapped_column(ForeignKey('Target.target_id'))
+    target_id: Mapped[int] = mapped_column(ForeignKey('Target.target_id'), primary_key=True)
     
-    user: Mapped['User'] = relationship(back_populates='seen')
-    target: Mapped['Target'] = relationship(back_populates='seen') 
+    user: Mapped['User'] = relationship(back_populates='favorites')
+    target: Mapped['Target'] = relationship(back_populates='favorites') 
 
 class Blacklist(Base):
     __tablename__ = "Blacklist"
@@ -57,10 +57,10 @@ class Blacklist(Base):
     # id = sq.Column(sq.Integer, primary_key=True)
     
     user_id: Mapped[int] = mapped_column(ForeignKey('User.user_id'))
-    target_id: Mapped[int] = mapped_column(ForeignKey('Target.target_id'))
+    target_id: Mapped[int] = mapped_column(ForeignKey('Target.target_id'), primary_key=True)
     
-    user: Mapped['User'] = relationship(back_populates='seen')
-    target: Mapped['Target'] = relationship(back_populates='seen')  
+    user: Mapped['User'] = relationship(back_populates='blacklist')
+    target: Mapped['Target'] = relationship(back_populates='blacklist')  
 
 def create_tables(engine):
     Base.metadata.drop_all(engine)         
