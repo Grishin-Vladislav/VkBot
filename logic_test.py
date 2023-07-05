@@ -6,7 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-TOKEN = os.getenv('TOKEN')
+TOKEN = os.getenv('USR_TOKEN')
 url = 'https://api.vk.com/method/users.search'
 headers = {'Authorization': f'Bearer {TOKEN}'}
 params = {
