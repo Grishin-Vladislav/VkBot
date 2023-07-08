@@ -1,16 +1,12 @@
-import os
+from time import sleep
+
 import vk_api
-import time
-import requests
-from dotenv import load_dotenv, find_dotenv
 
-load_dotenv(find_dotenv())
-TOKEN = os.getenv('USR_TOKEN')
 
-class Finder():
+class Finder:
     RPS_DELAY = 0.34
-    def __init__(self) -> None:
-        self.vk_user = vk_api.VkApi(token=TOKEN)
+    def __init__(self, token) -> None:
+        self.vk_user = vk_api.VkApi(token=token)
         self.vk_user_got_api = self.vk_user.get_api()
     
     def find_people(self):
@@ -23,7 +19,7 @@ class Finder():
                     status=1,  # 1 — не женат или не замужем, 6 — в активном поиске.
                     age_from= 20,
                     has_photo=1,  # 1 — искать только пользователей с фотографией, 0 — искать по всем пользователям
-                    count=10,
+                    count=1000,
                     fields="can_write_private_message, "  # Информация о том, может ли текущий пользователь отправить личное сообщение. Возможные значения: 1 — может; 0 — не может.
                         "city, "  # Информация о городе, указанном на странице пользователя в разделе «Контакты».
                         "domain, "  # Короткий адрес страницы.
@@ -34,6 +30,7 @@ class Finder():
                 if person["is_closed"] == False:
                         if "city" in person and person["city"]["id"] == 1 and person["city"]["title"] == 'Москва':
                             list_found_persons.append(person['id'])
+        sleep(0.33)
         return list_found_persons
 
     def get_photo(self, user_id):                            
@@ -44,6 +41,7 @@ class Finder():
                     extended=1, 
                     count=30
                 )
+        sleep(0.33)
         photo_list = {}
         for i in res['items']:
             likes = i['likes']['count']
@@ -66,14 +64,16 @@ class Finder():
                         user_id=user_id,
                         fields="name_case, nickname"
                     )
+        sleep(0.33)
         for i in info:
             name = i['first_name']
             surname = i['last_name']
             url = ['https://vk.com/id', user_id]
             url = (''.join(url))
             return f'ФИО: {name} {surname},\nСсылка на профиль: {url}'
-        
-for i in Finder().find_people():
-    print(Finder().get_info(str(i)))
-    print(Finder().get_photo(str(i)))
-    time.sleep(0.33)
+#
+# for i in Finder().find_people():
+#     print(Finder().get_info(str(i)))
+#     time.sleep(0.33)
+#     print(Finder().get_photo(str(i)))
+#     time.sleep(0.33)
