@@ -5,7 +5,7 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from dotenv import load_dotenv, find_dotenv
 
-from db.redis.finis import FiniteStateMachine
+from db.redis.finis import FiniteStateMachine, FiniteStateMachineLocal
 from vk.methods import VkBotHandler
 from vk.find_people import Finder
 from keyboards.kb import Markup
@@ -17,11 +17,12 @@ TOKEN = os.getenv("TOKEN")
 USR_TOKEN = os.getenv("USR_TOKEN")
 
 # Setting FSM
-r = redis.Redis(host='localhost', port=6379, decode_responses=True)
-machine = FiniteStateMachine(r)
+# r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+machine = FiniteStateMachineLocal()
 
 # Deleting all redis data (Only for testing)
-for key in r.keys(): r.delete(key)
+# for key in r.keys(): r.delete(key)
+targets = []
 
 # Setting api, bot and polling
 usr_api = vk_api.VkApi(token=USR_TOKEN)
@@ -87,10 +88,16 @@ if __name__ == '__main__':
                 # todo: Тут метод сохранения города юзера
                 machine.set(user_id, 'main_menu')
 
+                # for target in finder.find_people():
+                #     r.rpush(f'user:{user_id}:targets', target)
+                #
+                # target_id = r.lpop(f'user:{user_id}:targets')
+                # target_info = finder.get_info(target_id)
+                # target_photo = finder.get_photo(target_id)
                 for target in finder.find_people():
-                    r.rpush(f'user:{user_id}:targets', target)
+                    targets.append(target)
 
-                target_id = r.lpop(f'user:{user_id}:targets')
+                target_id = targets.pop()
                 target_info = finder.get_info(target_id)
                 target_photo = finder.get_photo(target_id)
 
@@ -107,7 +114,8 @@ if __name__ == '__main__':
 
         if state == 'main_menu':
             if message == 'Далее':
-                target_id = r.lpop(f'user:{user_id}:targets')
+                # target_id = r.lpop(f'user:{user_id}:targets')
+                target_id = targets.pop()
                 # todo: тут проверка конца списка, перезапуск поиска
                 # todo: перезапуск должен проверять blacklist
                 target_info = finder.get_info(target_id)
