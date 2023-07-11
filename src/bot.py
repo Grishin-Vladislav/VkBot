@@ -22,7 +22,7 @@ machine = FiniteStateMachineLocal()
 
 # Deleting all redis data (Only for testing)
 # for key in r.keys(): r.delete(key)
-targets = []
+cache = {}
 
 # Setting api, bot and polling
 usr_api = vk_api.VkApi(token=USR_TOKEN)
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
         if state == 'asked_sex':
             if message in ('М', 'Ж'):
-                # todo: Тут метод сохранения пола юзера
+                cache[user_id] = message
                 machine.set(user_id, 'asked_age')
                 bot.send_message(user_id, 'Твой возраст?')
             else:
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
         if state == 'asked_age':
             if is_valid_age(message):
-                # todo: Тут метод сохранения возраста юзера
+                cache[user_id] = message
                 machine.set(user_id, 'asked_city')
                 bot.send_message(user_id, 'Твой город?')
             else:
@@ -85,21 +85,24 @@ if __name__ == '__main__':
 
         if state == 'ensure_city':
             if message == 'Да':
-                # todo: Тут метод сохранения города юзера
+                cache[user_id] = message
+                # todo: Сохранение не строкой, а айдишником города
+                # todo: Создание юзера в бд
                 machine.set(user_id, 'main_menu')
 
                 # for target in finder.find_people():
-                #     r.rpush(f'user:{user_id}:targets', target)
+                #     r.rpush(f'user:{user_id}:cache', target)
                 #
-                # target_id = r.lpop(f'user:{user_id}:targets')
+                # target_id = r.lpop(f'user:{user_id}:cache')
                 # target_info = finder.get_info(target_id)
                 # target_photo = finder.get_photo(target_id)
                 for target in finder.find_people():
-                    targets.append(target)
+                    cache[f'{user_id}:target_list'].append(target)
 
-                target_id = targets.pop()
+                target_id = cache[f'{user_id}:target_list'].pop()
                 target_info = finder.get_info(target_id)
                 target_photo = finder.get_photo(target_id)
+                cache[f'{user_id}:current_target'] = target_id
 
                 bot.send_message(user_id, target_info,
                                  attachments=target_photo,
@@ -114,8 +117,9 @@ if __name__ == '__main__':
 
         if state == 'main_menu':
             if message == 'Далее':
-                # target_id = r.lpop(f'user:{user_id}:targets')
-                target_id = targets.pop()
+                # target_id = r.lpop(f'user:{user_id}:cache')
+                target_id = cache[f'{user_id}:target_list'].pop()
+                cache[f'{user_id}:current_target'] = target_id
                 # todo: тут проверка конца списка, перезапуск поиска
                 # todo: перезапуск должен проверять blacklist
                 target_info = finder.get_info(target_id)
