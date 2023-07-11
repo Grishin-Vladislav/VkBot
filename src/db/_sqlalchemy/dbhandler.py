@@ -39,14 +39,16 @@ class DbHandler:
 
     @staticmethod
     def __create_tables(engine) -> None:
+        Base.metadata.drop_all(engine)
         Base.metadata.create_all(engine)
 
     # Это первый тестовый метод для работы с бд
     def write_user(self, user_id, age, city, sex):
         user = User(user_id=user_id, gender=sex, age=age, city=city)
         self.__s.add(user)
-        self.commit()
+        self.__s.commit()
+        return user.user_id
 
 
 with DbHandler(DSN) as db:
-    db.write_user(88005553535, 80, 'moscow', 'male')
+    user_id = db.write_user('8800555', 80, 'moscow', 'male')
