@@ -28,7 +28,7 @@ class Target(Base):
 
 
 class Favourites(Base):
-    __tablename__ = "favorites"
+    __tablename__ = "favourites"
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     user_id = Column(BIGINT, ForeignKey('user.user_id'))
     target_id = Column(BIGINT, ForeignKey('target.target_id'))
