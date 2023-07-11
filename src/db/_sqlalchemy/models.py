@@ -36,7 +36,6 @@ class Favourites(Base):
     user = relationship('User', back_populates='favourites')
     target = relationship('Target', back_populates='favourites')
 
-
 class Blacklist(Base):
     __tablename__ = "blacklist"
     id = Column(INTEGER, primary_key=True, autoincrement=True)
