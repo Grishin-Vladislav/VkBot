@@ -5,6 +5,7 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from dotenv import load_dotenv, find_dotenv
 
+from db._sqlalchemy.DB import insert_bd_user, insert_bd_target, insert_bd_favorites, insert_bd_blacklist, get_favorites
 from db.redis.finis import FiniteStateMachine, FiniteStateMachineLocal
 from vk.methods import VkBotHandler
 from vk.find_people import Finder
@@ -42,8 +43,6 @@ if __name__ == '__main__':
         state = machine.get(user_id)
 
         if state is None:
-            # todo: тут проверка открытой страницы у юзера
-            # todo: если открыта - пропуск опроса
             machine.set(user_id, 'started_dialogue')
             bot.send_message(user_id, "Пройди опрос, нажми начать.",
                              markup=Markup.start())
@@ -59,7 +58,7 @@ if __name__ == '__main__':
 
         if state == 'asked_sex':
             if message in ('М', 'Ж'):
-                cache[user_id] = message
+                cache[user_id] = {'gender': message}
                 machine.set(user_id, 'asked_age')
                 bot.send_message(user_id, 'Твой возраст?')
             else:
@@ -68,7 +67,7 @@ if __name__ == '__main__':
 
         if state == 'asked_age':
             if is_valid_age(message):
-                cache[user_id] = message
+                cache[user_id] = {'age': message}
                 machine.set(user_id, 'asked_city')
                 bot.send_message(user_id, 'Твой город?')
             else:
@@ -85,9 +84,10 @@ if __name__ == '__main__':
 
         if state == 'ensure_city':
             if message == 'Да':
-                cache[user_id] = message
+                cache[user_id] = {'city': city}
                 # todo: Сохранение не строкой, а айдишником города
-                # todo: Создание юзера в бд
+                insert_bd_user(cache)
+                Finder().find_people(cache)
                 machine.set(user_id, 'main_menu')
 
                 # for target in finder.find_people():
@@ -130,16 +130,18 @@ if __name__ == '__main__':
                                  markup=Markup.main())
 
             elif message == 'ЧС':
-                # todo: тут метод для сохранения в чс
+                insert_bd_blacklist(cache)
                 pass
 
             elif message == 'Добавить в Избранное':
-                # todo: тут метод для сохранения в избранное
+                cache[user_id] = {'now': target_info}
+                insert_bd_favorites(cache)
                 pass
 
             elif message == 'Моё избранное':
-                # todo: тут метод для показа избранного из бд
+                get_favorites()
                 pass
 
             else:
                 bot.send_message(user_id, "Нажми на кнопку.")
+

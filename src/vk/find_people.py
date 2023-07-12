@@ -9,17 +9,22 @@ class Finder:
     def __init__(self, token) -> None:
         self.vk_user = vk_api.VkApi(token=token)
         self.vk_user_got_api = self.vk_user.get_api()
+        
 
-    def find_people(self):
+    def find_people(self, value):
         list_found_persons = []
+        if value['sex'] == "М":
+            find_sex = 'Ж'
+        else:
+            find_sex = 'М'
         res = self.vk_user_got_api.users.search(
             sort=0,  # 1 — по дате регистрации, 0 — по популярности.
-            city=1,
-            hometown='Москва',
-            sex=1,  # 1— женщина, 2 — мужчина, 0 — любой (по умолчанию).
+            # city=1,
+            hometown=value['city'],
+            sex=find_sex,  # 1— женщина, 2 — мужчина, 0 — любой (по умолчанию).
             status=1,
             # 1 — не женат или не замужем, 6 — в активном поиске.
-            age_from=20,
+            age_from=value['age'],
             has_photo=1,
             # 1 — искать только пользователей с фотографией, 0 — искать по всем пользователям
             count=1000,
@@ -55,8 +60,7 @@ class Finder:
         counter = 0
 
         for id in sorted_photo.values():
-            listr = ['https://vk.com/id', str(user_id), '?z=photo',
-                     str(user_id), '_', id]
+            listr = ['https://vk.com/id', str(user_id), '?z=photo', str(user_id), '_', id]
             attachment.append(''.join(listr))
             counter += 1
             if counter == res['count'] or counter == 3:
