@@ -1,5 +1,4 @@
-from sqlalchemy import Column, BIGINT, ForeignKey, Text, VARCHAR, Float, \
-    INTEGER, TIMESTAMP, BOOLEAN, String
+from sqlalchemy import Column, BIGINT, ForeignKey, VARCHAR, INTEGER, String
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -35,7 +34,7 @@ class Blacklist(Base):
 
     user = relationship('User', back_populates='blacklist')
 
+
 def create_tables(engine):
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-

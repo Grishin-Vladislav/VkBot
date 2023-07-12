@@ -3,9 +3,11 @@ import os
 from dotenv import load_dotenv, find_dotenv
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy_utils import database_exists, create_database
+
 from src.db._sqlalchemy.models import create_tables, User, Blacklist, \
     Favourites
-from sqlalchemy_utils import database_exists, create_database
+
 
 load_dotenv(find_dotenv())
 DSN = os.getenv("DSN")

@@ -80,9 +80,3 @@ class Finder:
             url = ['https://vk.com/id', str(user_id)]
             url = (''.join(url))
             return f'ФИО: {name} {surname},\nСсылка на профиль: {url}'
-#
-# for i in Finder().find_people():
-#     print(Finder().get_info(str(i)))
-#     time.sleep(0.33)
-#     print(Finder().get_photo(str(i)))
-#     time.sleep(0.33)
