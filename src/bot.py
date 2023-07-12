@@ -1,12 +1,12 @@
 import os
 
-import redis
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from dotenv import load_dotenv, find_dotenv
 
-from db._sqlalchemy.DB import insert_bd_user, insert_bd_target, insert_bd_favorites, insert_bd_blacklist, get_favorites
-from db.redis.finis import FiniteStateMachine, FiniteStateMachineLocal
+from db._sqlalchemy.DB import insert_bd_user, insert_bd_favorites, \
+    insert_bd_blacklist, get_favorites, get_blacklist
+from db.redis.finis import FiniteStateMachineLocal
 from vk.methods import VkBotHandler
 from vk.find_people import Finder
 from keyboards.kb import Markup
@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
         if state == 'asked_age':
             if is_valid_age(message):
-                cache[user_id] = {'age': message}
+                cache[user_id]['age'] = message
                 machine.set(user_id, 'asked_city')
                 bot.send_message(user_id, 'Твой город?')
             else:
@@ -77,6 +77,7 @@ if __name__ == '__main__':
             city = get_city(message, usr_api)
             if city:
                 machine.set(user_id, 'ensure_city')
+                cache[user_id]['city'] = city
                 bot.send_message(user_id, f"Это твой город?\n{city}",
                                  markup=Markup.yes_no())
             else:
@@ -84,10 +85,7 @@ if __name__ == '__main__':
 
         if state == 'ensure_city':
             if message == 'Да':
-                cache[user_id] = {'city': city}
-                # todo: Сохранение не строкой, а айдишником города
                 insert_bd_user(user_id, cache)
-                Finder().find_people(cache)
                 machine.set(user_id, 'main_menu')
 
                 # for target in finder.find_people():
@@ -96,13 +94,15 @@ if __name__ == '__main__':
                 # target_id = r.lpop(f'user:{user_id}:cache')
                 # target_info = finder.get_info(target_id)
                 # target_photo = finder.get_photo(target_id)
-                for target in finder.find_people():
-                    cache[f'{user_id}:target_list'].append(target)
 
-                target_id = cache[f'{user_id}:target_list'].pop()
+                cache[user_id]['targets'] = list()
+                for target in finder.find_people(user_id, cache):
+                    cache[user_id]['targets'].append(target)
+
+                target_id = cache[user_id]['targets'].pop(0)
                 target_info = finder.get_info(target_id)
                 target_photo = finder.get_photo(target_id)
-                cache[f'{user_id}:current_target'] = target_id
+                cache[user_id]['now'] = target_id
 
                 bot.send_message(user_id, target_info,
                                  attachments=target_photo,
@@ -118,10 +118,17 @@ if __name__ == '__main__':
         if state == 'main_menu':
             if message == 'Далее':
                 # target_id = r.lpop(f'user:{user_id}:cache')
-                target_id = cache[f'{user_id}:target_list'].pop()
-                cache[f'{user_id}:current_target'] = target_id
-                # todo: тут проверка конца списка, перезапуск поиска
-                # todo: перезапуск должен проверять blacklist
+                try:
+                    target_id = cache[user_id]['targets'].pop(0)
+                except IndexError:
+                    blacklist = get_blacklist(user_id)
+                    for target in finder.find_people(user_id, cache):
+                        if target in blacklist:
+                            continue
+                        cache[user_id]['targets'].append(target)
+                    target_id = cache[user_id]['targets'].pop(0)
+
+                cache[user_id]['now'] = target_id
                 target_info = finder.get_info(target_id)
                 target_photo = finder.get_photo(target_id)
 
@@ -130,18 +137,17 @@ if __name__ == '__main__':
                                  markup=Markup.main())
 
             elif message == 'ЧС':
-                insert_bd_blacklist(cache)
-                pass
+                insert_bd_blacklist(user_id, cache)
+                bot.send_message(user_id, 'Юзер добавлен в blacklist')
 
             elif message == 'Добавить в Избранное':
-                cache[user_id] = {'now': target_info}
-                insert_bd_favorites(cache)
-                pass
+                info = finder.get_info(cache[user_id]['now'])
+                insert_bd_favorites(user_id, cache, info)
+                bot.send_message(user_id, 'Юзер добавлен в избранное')
 
             elif message == 'Моё избранное':
-                get_favorites()
-                pass
+                favourites = get_favorites(user_id)
+                bot.send_message(user_id, favourites)
 
             else:
                 bot.send_message(user_id, "Нажми на кнопку.")
-

@@ -17,32 +17,23 @@ class User(Base):
     blacklist = relationship('Blacklist', back_populates='user')
 
 
-class Target(Base):
-    __tablename__ = "target"
-
-    target_id = Column(INTEGER, primary_key=True)
-
-    favourites = relationship('Favourites', back_populates='target')
-    blacklist = relationship('Blacklist', back_populates='target')
-
-
 class Favourites(Base):
     __tablename__ = "favourites"
     id = Column(INTEGER, primary_key=True, autoincrement=True)
-    user_id = Column(BIGINT, ForeignKey('user.user_id'))
-    target_id = Column(BIGINT, ForeignKey('target.target_id'))
+    user_id = Column(BIGINT, ForeignKey('user.user_id'), nullable=False)
+    target_id = Column(BIGINT, nullable=False)
+    info = Column(VARCHAR(200), nullable=False)
 
     user = relationship('User', back_populates='favourites')
-    target = relationship('Target', back_populates='favourites')
+
 
 class Blacklist(Base):
     __tablename__ = "blacklist"
     id = Column(INTEGER, primary_key=True, autoincrement=True)
-    user_id = Column(BIGINT, ForeignKey('user.user_id'))
-    target_id = Column(BIGINT, ForeignKey('target.target_id'))
+    user_id = Column(BIGINT, ForeignKey('user.user_id'), nullable=False)
+    target_id = Column(BIGINT, nullable=False)
 
     user = relationship('User', back_populates='blacklist')
-    target = relationship('Target', back_populates='blacklist')
 
 def create_tables(engine):
     Base.metadata.drop_all(engine)

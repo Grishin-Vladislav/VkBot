@@ -9,22 +9,22 @@ class Finder:
     def __init__(self, token) -> None:
         self.vk_user = vk_api.VkApi(token=token)
         self.vk_user_got_api = self.vk_user.get_api()
-        
 
-    def find_people(self, value):
+    def find_people(self, user_id, cache):
         list_found_persons = []
-        if value['sex'] == "М":
-            find_sex = 'Ж'
+        if cache[user_id]['gender'] == "М":
+            find_sex = 1
         else:
-            find_sex = 'М'
+            find_sex = 2
         res = self.vk_user_got_api.users.search(
             sort=0,  # 1 — по дате регистрации, 0 — по популярности.
             # city=1,
-            hometown=value['city'],
-            sex=find_sex,  # 1— женщина, 2 — мужчина, 0 — любой (по умолчанию).
+            hometown=cache[user_id]['city'],
+            sex=find_sex,
+            # 1— женщина, 2 — мужчина, 0 — любой (по умолчанию).
             status=1,
             # 1 — не женат или не замужем, 6 — в активном поиске.
-            age_from=value['age'],
+            age_from=cache[user_id]['age'],
             has_photo=1,
             # 1 — искать только пользователей с фотографией, 0 — искать по всем пользователям
             count=1000,
@@ -35,11 +35,10 @@ class Finder:
         )
 
         for person in res["items"]:
-            if person["is_closed"] == False:
-                if "city" in person and person["city"]["id"] == 1 and \
-                        person["city"]["title"] == 'Москва':
-                    list_found_persons.append(person['id'])
+            if person["is_closed"] is False:
+                list_found_persons.append(person['id'])
         sleep(0.33)
+        print(len(list_found_persons))
         return list_found_persons
 
     def get_photo(self, user_id):
@@ -60,7 +59,8 @@ class Finder:
         counter = 0
 
         for id in sorted_photo.values():
-            listr = ['https://vk.com/id', str(user_id), '?z=photo', str(user_id), '_', id]
+            listr = ['https://vk.com/id', str(user_id), '?z=photo',
+                     str(user_id), '_', id]
             attachment.append(''.join(listr))
             counter += 1
             if counter == res['count'] or counter == 3:
