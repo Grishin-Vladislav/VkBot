@@ -86,7 +86,7 @@ if __name__ == '__main__':
             if message == 'Да':
                 cache[user_id] = {'city': city}
                 # todo: Сохранение не строкой, а айдишником города
-                insert_bd_user(cache)
+                insert_bd_user(user_id, cache)
                 Finder().find_people(cache)
                 machine.set(user_id, 'main_menu')
 
