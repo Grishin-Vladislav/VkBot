@@ -21,7 +21,6 @@ class Target(Base):
     __tablename__ = "target"
 
     target_id = Column(INTEGER, primary_key=True)
-    link = Column(String(length=100), unique=True, nullable=False)
 
     favourites = relationship('Favourites', back_populates='target')
     blacklist = relationship('Blacklist', back_populates='target')
@@ -45,6 +44,7 @@ class Blacklist(Base):
     user = relationship('User', back_populates='blacklist')
     target = relationship('Target', back_populates='blacklist')
 
-# def create_tables(engine):
-#     Base.metadata.drop_all(engine)
-#     Base.metadata.create_all(engine)
+def create_tables(engine):
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
